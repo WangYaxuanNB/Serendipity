@@ -1,5 +1,6 @@
 package com.serendipity.demo;
 
+import com.serendipity.demo.HttpClient;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -31,12 +32,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class Register extends Application {
+public class Register{
+    private Scene scene;
+    public Scene getScene() {
+        return scene;
+    }
 
     private static final double SCALE_RATIO = 0.6;
 
-    @Override
-    public void start(Stage dialog) throws IOException {
+    public Register(MainApp app) throws IOException {
         AnchorPane root = new AnchorPane();
         root.setPrefSize(1640, 1154);
 
@@ -50,7 +54,7 @@ public class Register extends Application {
         );
         root.setBackground(new Background(backgroundFill));
 
-        Pane roundedPane = createRightRoundedPanel();
+        Pane roundedPane = createRightRoundedPanel(app);
         root.getChildren().add(roundedPane);
         roundedPane.setTranslateX(961);
         roundedPane.setTranslateY(22);
@@ -62,13 +66,10 @@ public class Register extends Application {
 
         Pane characterPane = Character(scene);
         root.getChildren().add(characterPane);
-        dialog.setScene(scene);
-        dialog.setTitle("注册");
-        dialog.show();
-        dialog.setResizable(false);
+        this.scene=scene;
     }
 
-    private Pane createRightRoundedPanel() {
+    private Pane createRightRoundedPanel(MainApp app) {
         Pane roundedPane = new Pane();
         roundedPane.setPrefSize(644, 1114);
         roundedPane.setStyle("-fx-background-color: white; -fx-background-radius: 26;");
@@ -157,6 +158,21 @@ public class Register extends Application {
         registerButton.setPrefHeight(76);
         registerButton.setPrefWidth(511);
 
+        registerButton.setOnMouseClicked(e -> {
+            String username = usernameInput.getText();
+            String password = passwordInput.getText();
+            String phone = phoneNumberInput.getText();
+
+            String json = String.format(
+                    "{ \"username\": \"%s\", \"password\": \"%s\", \"phoneNumber\": \"%s\" }",
+                    username, password, phone
+            );
+
+            String result = HttpClient.sendPost("http://localhost:8080/api/users/register", json);
+            System.out.println("服务器响应：" + result);
+        });
+
+
         // 添加登录链接
         Text loginText = new Text("Already have an account? ");
         loginText.setFont(Font.font("Inter", 20));
@@ -177,7 +193,11 @@ public class Register extends Application {
         loginLink.setOnMouseExited(e -> loginLink.setFill(Color.BLACK));
         loginLink.setOnMouseClicked(e -> {
             // TODO: 实现返回登录页面的逻辑
-            System.out.println("返回登录页面");
+            try {
+                app.showLoginPage();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         roundedPane.getChildren().addAll(
@@ -346,7 +366,4 @@ public class Register extends Application {
         return root;
     }
 
-    public static void main(String[] args) {
-        launch();
-    }
-} 
+}

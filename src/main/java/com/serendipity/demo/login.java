@@ -2,10 +2,8 @@ package com.serendipity.demo;
 
 import javafx.animation.*;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -15,13 +13,14 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
+import javafx.scene.Parent;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import org.jboss.jandex.Main;
 //import okhttp3.OkHttpClient;
 //import okhttp3.Request;
 //import okhttp3.RequestBody;
@@ -32,16 +31,17 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.util.*;
 
-import static javafx.scene.text.TextAlignment.CENTER;
-
-public class login extends Application {
-
+public class login {
+    private Scene scene;
     private static final double SCALE_RATIO = 0.6;
     private static final double EYE_RADIUS = 10;
     private static final double PUPIL_RADIUS = 4;
 
-    @Override
-    public void start(Stage dialog) throws IOException {
+    public Scene getScene() {
+        return scene;
+    }
+
+    public login(MainApp app) throws IOException {
 //        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
 //        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 //        stage.setTitle("Hello!");
@@ -64,7 +64,7 @@ public class login extends Application {
         );
         root.setBackground(new Background(backgroundFill));
 
-        Pane roundedPane = createRightRoundedPanel();
+        Pane roundedPane = createRightRoundedPanel(app);
         root.getChildren().add(roundedPane);
         roundedPane.setTranslateX(961); // 设置 X 轴相对偏移
         roundedPane.setTranslateY(22); // 设置 Y 轴相对偏移
@@ -86,19 +86,10 @@ public class login extends Application {
 //        dialog.initStyle(StageStyle.UNDECORATED); // 无边框弹窗
         Pane characterPane = Character(scene);
         root.getChildren().add(characterPane);
-        dialog.setScene(scene);
-        dialog.setTitle("圆角弹窗");
-        dialog.show();
-        dialog.setResizable(false);
-
-
-
-//
-
-
+        this.scene=scene;
     }
 
-    private Pane createRightRoundedPanel() {
+    private Pane createRightRoundedPanel(MainApp app) {
         Pane  roundedPane = new Pane (); // 设置矩形的宽度和高度
         roundedPane.setPrefSize(644, 1114);
         roundedPane.setStyle("-fx-background-color: white; -fx-background-radius: 26;");
@@ -186,7 +177,7 @@ public class login extends Application {
         loginButton.setStyle("-fx-background-color: black; " +
                 "-fx-text-fill: white; " +
                 "-fx-background-radius: 26; " +
-                "-fx-font-family: 'Inter'; " +   
+                "-fx-font-family: 'Inter'; " +
                 "-fx-font-size: 24px; " +
                 "-fx-font-weight: 600; " +
                 "-fx-padding: 10 20;");
@@ -252,12 +243,12 @@ public class login extends Application {
         Text signUpText = new Text("Don't have an account? ");
         signUpText.setFont(Font.font("Inter", 20));
         signUpText.setFill(Color.BLACK);
-        
+
         Text signUpLink = new Text("Sign Up");
         signUpLink.setFont(Font.font("Inter", 20));
         signUpLink.setFill(Color.BLACK);
         signUpLink.setStyle("-fx-cursor: hand;");
-        
+
         // 创建水平布局容器
         HBox signUpContainer = new HBox(5); // 5是元素之间的间距
         signUpContainer.setAlignment(Pos.CENTER);
@@ -268,11 +259,15 @@ public class login extends Application {
         // 添加鼠标悬停效果
         signUpLink.setOnMouseEntered(e -> signUpLink.setFill(Color.GRAY));
         signUpLink.setOnMouseExited(e -> signUpLink.setFill(Color.BLACK));
-        
+
         // 添加点击事件
         signUpLink.setOnMouseClicked(e -> {
             // TODO: 在这里添加跳转到注册页面的逻辑
-            System.out.println("跳转到注册页面");
+            try {
+                app.showRegisterPage();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         roundedPane.getChildren().add(text1);
@@ -424,7 +419,4 @@ public class login extends Application {
     }
 
 
-    public static void main(String[] args) {
-        launch();
-    }
 }
