@@ -1,298 +1,284 @@
 package com.sum;
 
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
-import javafx.scene.shape.Circle;
-import java.util.ArrayList;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
+import javafx.geometry.Pos;
+import com.sum.model.Note;
+import com.sum.model.Comment;
+import com.sum.service.NoteService;
+import com.sum.service.CommentService;
+import java.sql.SQLException;
 import java.util.List;
-import java.util.Random;
 
-import static com.sum.dao.community_interactions.queryAllInteractions;
-
-/**
- * 首页推荐视图，展示笔记瀑布流布局
- */
 public class FeedView {
     private GridPane feedGrid;
-    private Random random = new Random();
-    private double startY; // 用于记录鼠标按下时的Y坐标
+    private NoteService noteService;
+    private CommentService commentService;
 
     public FeedView() {
+        noteService = new NoteService();
+        commentService = new CommentService();
         initializeUI();
+        loadNotes();
     }
 
-    /**
-     * 初始化UI组件
-     */
     private void initializeUI() {
-        // 整体容器和滚动区域：整个笔记墙就是放在ScrollPane里
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background: #f5f5f5; -fx-border-color: transparent;");
-
-        // 添加鼠标按下事件监听器
-        scrollPane.setOnMousePressed(event -> {
-            startY = event.getScreenY();
-        });
-
-        // 添加鼠标释放事件监听器
-        scrollPane.setOnMouseReleased(event -> {
-            double deltaY = event.getScreenY() - startY;
-            if (deltaY > 50) { // 如果下拉距离超过50像素，触发刷新
-                refreshFeed();
-            }
-        });
-
-        // 瀑布流两列布局（GridPane）
         feedGrid = new GridPane();
         feedGrid.getStyleClass().add("feed-grid");
-
-        // 设置两列瀑布流
-        ColumnConstraints column1 = new ColumnConstraints();
-        column1.setPercentWidth(50);
-        ColumnConstraints column2 = new ColumnConstraints();
-        column2.setPercentWidth(50);
-        feedGrid.getColumnConstraints().addAll(column1, column2);
-        feedGrid.setVgap(15);
-        feedGrid.setHgap(15);
-        feedGrid.setPadding(new Insets(12));
-
-        // 添加示例笔记数据
-        List<Note> notes = getSampleNotes();
-        populateGridWithNotes(notes);
-
-        scrollPane.setContent(feedGrid);
+        feedGrid.setHgap(20);
+        feedGrid.setVgap(20);
+        feedGrid.setPadding(new Insets(20));
     }
 
-    /**
-     * 刷新笔记瀑布流
-     */
-    private void refreshFeed() {
-        // 清空当前的笔记列表
-        feedGrid.getChildren().clear();
-
-        // 获取新的笔记数据并重新填充
-        List<Note> notes = getSampleNotes();
-        populateGridWithNotes(notes);
-    }
-
-    /**
-     * 将笔记填充到瀑布流网格中
-     * @param notes 笔记列表
-     */
-    private void populateGridWithNotes(List<Note> notes) {
-        int row = 0, col = 0;
-        int[] columnHeights = {0, 0}; // 跟踪每列的当前高度
-
-        for (Note note : notes) {
-            // 根据列高度决定放入哪一列
-            col = (columnHeights[0] <= columnHeights[1]) ? 0 : 1;
-
-            // 创建笔记卡片
-            VBox noteCard = createNoteCard(note);
-
-            // 添加到瀑布流布局
-            feedGrid.add(noteCard, col, row);
-
-            // 更新该列的高度 (根据内容高度和图片高度计算)
-            columnHeights[col] += note.getImageHeight() + 100; // 100是内容区域的近似高度
-
-            // 如果需要新行
-            if (col == 1) row++;
+    private void loadNotes() {
+        try {
+            List<Note> notes = noteService.getAllNotes();
+            int column = 0;
+            int row = 0;
+            
+            for (Note note : notes) {
+                VBox noteCard = createNoteCard(note);
+                feedGrid.add(noteCard, column, row);
+                
+                column++;
+                if (column > 3) { // 每行最多4个卡片
+                    column = 0;
+                    row++;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // TODO: 显示错误提示
         }
     }
 
-    /**
-     * 创建一个笔记卡片
-     * @param note 笔记数据
-     * @return 卡片UI组件
-     */
     private VBox createNoteCard(Note note) {
-        VBox noteCard = new VBox();
-        noteCard.getStyleClass().add("note-card");
-
-        // 笔记图片容器
+        VBox card = new VBox();
+        card.getStyleClass().add("note-card");
+        
+        // 图片容器
         StackPane imageContainer = new StackPane();
         imageContainer.getStyleClass().add("note-image-container");
-
-        // 笔记图片
-        String imageUrl = note.getImageUrl();
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            ImageView imageView = new ImageView(new Image(imageUrl));
-            imageView.setFitWidth(240);
-            imageView.setFitHeight(note.getImageHeight());
-            imageView.setPreserveRatio(true);
-            imageContainer.getChildren().add(imageView);
-        } else {
-            // 如果图片URL为空，使用默认图片
-            ImageView defaultImageView = new ImageView(new Image("https://picsum.photos/seed/fashion/400/350"));
-            defaultImageView.setFitWidth(240);
-            defaultImageView.setFitHeight(note.getImageHeight());
-            defaultImageView.setPreserveRatio(true);
-            imageContainer.getChildren().add(defaultImageView);
+        
+        ImageView imageView = new ImageView();
+        imageView.getStyleClass().add("note-image");
+        imageView.setFitWidth(280);
+        imageView.setPreserveRatio(true);
+        
+        try {
+            Image image = new Image(note.getImageUrl());
+            imageView.setImage(image);
+        } catch (Exception e) {
+            // 如果图片加载失败，显示默认图片
+            imageView.setImage(new Image(getClass().getResourceAsStream("/default-note.png")));
         }
-
-        // 笔记内容区域
-        VBox contentBox = new VBox();
+        
+        imageContainer.getChildren().add(imageView);
+        
+        // 内容容器
+        VBox contentBox = new VBox(8);
         contentBox.getStyleClass().add("note-content");
-
-        // 笔记标题
+        contentBox.setPadding(new Insets(12));
+        
+        // 标题
         Label titleLabel = new Label(note.getTitle());
         titleLabel.getStyleClass().add("note-title");
-
-        // 笔记描述
-        Label descLabel = new Label(note.getDescription());
-        descLabel.getStyleClass().add("note-desc");
-
-        // 底部信息栏 (作者信息和互动按钮)
-        HBox footerBox = new HBox();
-        footerBox.getStyleClass().add("note-footer");
-
-        // 作者信息部分
-        HBox authorBox = new HBox();
-        authorBox.getStyleClass().add("author-container");
-
-        // 作者头像
-        String authorAvatarUrl = note.getAuthorAvatarUrl();
-        if (authorAvatarUrl != null && !authorAvatarUrl.isEmpty()) {
-            ImageView avatarView = new ImageView(new Image(authorAvatarUrl));
-            avatarView.setFitWidth(24);
-            avatarView.setFitHeight(24);
-
-            // 设置圆形头像
-            Circle clip = new Circle(12, 12, 12);
-            avatarView.setClip(clip);
-            avatarView.getStyleClass().add("author-avatar");
-
-            // 作者名称
-            Label authorLabel = new Label(note.getAuthor());
-            authorLabel.getStyleClass().add("note-author");
-
-            authorBox.getChildren().addAll(avatarView, authorLabel);
-        } else {
-            // 如果头像URL为空，使用默认头像
-            ImageView defaultAvatarView = new ImageView(new Image("https://randomuser.me/api/portraits/women/55.jpg"));
-            defaultAvatarView.setFitWidth(24);
-            defaultAvatarView.setFitHeight(24);
-
-            // 设置圆形头像
-            Circle clip = new Circle(12, 12, 12);
-            defaultAvatarView.setClip(clip);
-            defaultAvatarView.getStyleClass().add("author-avatar");
-
-            // 作者名称
-            Label authorLabel = new Label(note.getAuthor());
-            authorLabel.getStyleClass().add("note-author");
-
-            authorBox.getChildren().addAll(defaultAvatarView, authorLabel);
+        titleLabel.setWrapText(true);
+        
+        // 描述
+        Text description = new Text(note.getDescription());
+        description.getStyleClass().add("note-description");
+        TextFlow descriptionFlow = new TextFlow(description);
+        descriptionFlow.setMaxWidth(260);
+        
+        // 作者信息和互动区域
+        HBox interactionBox = new HBox(10);
+        interactionBox.getStyleClass().add("interaction-box");
+        
+        // 作者信息
+        HBox authorBox = new HBox(8);
+        authorBox.getStyleClass().add("author-box");
+        
+        ImageView avatarView = new ImageView();
+        avatarView.getStyleClass().add("author-avatar");
+        avatarView.setFitWidth(24);
+        avatarView.setFitHeight(24);
+        
+        try {
+            Image avatar = new Image(note.getAuthorAvatarUrl());
+            avatarView.setImage(avatar);
+        } catch (Exception e) {
+            // 如果头像加载失败，显示默认头像
+            avatarView.setImage(new Image(getClass().getResourceAsStream("/default-avatar.png")));
         }
-
-        // 点赞和评论图标
-        HBox interactionBox = new HBox();
-        interactionBox.getStyleClass().add("interaction-container");
-
-        Label likeLabel = new Label("❤ " + note.getLikes());
-        likeLabel.getStyleClass().add("like-icon");
-
-        Label commentLabel = new Label("💬 " + note.getComments());
-        commentLabel.getStyleClass().add("comment-icon");
-
-        interactionBox.getChildren().addAll(likeLabel, commentLabel);
-
-        // 设置底部栏的两端对齐
+        
+        Label authorLabel = new Label(note.getAuthor());
+        authorLabel.getStyleClass().add("author-name");
+        
+        authorBox.getChildren().addAll(avatarView, authorLabel);
+        
+        // 点赞和评论按钮
+        Button likeButton = new Button("❤ " + note.getLikes());
+        likeButton.getStyleClass().addAll("icon-button", "like-button");
+        
+        Button commentButton = new Button("💬 " + note.getCommentCount());
+        commentButton.getStyleClass().addAll("icon-button", "comment-button");
+        
+        // 点击评论按钮显示评论对话框
+        commentButton.setOnAction(e -> showComments(note));
+        
+        interactionBox.getChildren().addAll(authorBox, likeButton, commentButton);
         HBox.setHgrow(authorBox, Priority.ALWAYS);
-        footerBox.getChildren().addAll(authorBox, interactionBox);
-
-        // 组合所有元素
-        contentBox.getChildren().addAll(titleLabel, descLabel, footerBox);
-        noteCard.getChildren().addAll(imageContainer, contentBox);
-
-        return noteCard;
+        
+        // 将所有元素添加到卡片中
+        contentBox.getChildren().addAll(titleLabel, descriptionFlow, interactionBox);
+        card.getChildren().addAll(imageContainer, contentBox);
+        
+        // 点击卡片显示详情
+        card.setOnMouseClicked(e -> showNoteDetail(note));
+        
+        return card;
     }
 
-    /**
-     * 获取示例笔记数据
-     * @return 笔记列表
-     */
-    private List<Note> getSampleNotes() {
-        List<Note> notes = queryAllInteractions();
-
-        // 添加静态示例数据 - 使用更真实的数据
-        notes.add(new Note(
-            "宁波探店｜隐藏在街角的治愈系咖啡馆", 
-            "这家街角的小店真的太温馨了，店主是个超爱笑的姐姐，墙上的复古装饰也很有情调，推荐奶油草莓配方，绝对值得一试～",
-            "咖啡爱好者", 
-            "https://picsum.photos/seed/coffee/400/500", 
-            "https://randomuser.me/api/portraits/women/44.jpg",
-            random.nextInt(100) + 50, 
-            random.nextInt(20) + 5,
-            random.nextInt(100) + 200));
-
-        notes.add(new Note(
-            "夏日穿搭|简约清爽风格", 
-            "分享一套适合炎炎夏日的清爽穿搭，宽松衬衫搭配高腰牛仔裤，简约却不失时尚感，面料也很透气～",
-            "时尚博主Amy", 
-            "https://picsum.photos/seed/fashion/400/350", 
-            "https://randomuser.me/api/portraits/women/3.jpg",
-            random.nextInt(500) + 1000, 
-            random.nextInt(50) + 100,
-            random.nextInt(100) + 150));
-
-        notes.add(new Note(
-            "超治愈的手账排版｜手帐模板分享", 
-            "最近迷上了小清新风格的手账排版，分享一下我的排版思路和一些小贴纸素材，希望大家喜欢～",
-            "手账达人", 
-            "https://picsum.photos/seed/journal/400/450", 
-            "https://randomuser.me/api/portraits/women/10.jpg",
-            random.nextInt(200) + 300, 
-            random.nextInt(30) + 20,
-            random.nextInt(100) + 250));
-
-        notes.add(new Note(
-            "重庆周末游｜解放碑洪崖洞必吃美食", 
-            "周末和闺蜜逛了洪崖洞，人真的超多但风景绝美！推荐几家当地人都爱去的小店，麻辣烫、钵钵鸡都很地道～",
-            "吃货小王", 
-            "https://picsum.photos/seed/food/400/300", 
-            "https://randomuser.me/api/portraits/men/22.jpg",
-            random.nextInt(300) + 200, 
-            random.nextInt(40) + 15,
-            random.nextInt(100) + 180));
-
-        notes.add(new Note(
-            "植物种草|超好养的室内绿植推荐", 
-            "分享几种新手也能养好的室内植物！龟背竹、绿萝都是气质担当，而且超级好养，放在书桌旁边提神又净化空气～",
-            "植物爱好者", 
-            "https://picsum.photos/seed/plant/400/380", 
-            "https://randomuser.me/api/portraits/women/55.jpg",
-            random.nextInt(150) + 100, 
-            random.nextInt(25) + 10,
-            random.nextInt(100) + 220));
-
-        notes.add(new Note(
-            "厨房改造|极简北欧风", 
-            "花了一个月时间把10年的老厨房改造成北欧风格，分享一下改造历程和经验，希望能给准备装修的朋友一些参考～",
-            "家居达人", 
-            "https://picsum.photos/seed/kitchen/400/420", 
-            "https://randomuser.me/api/portraits/men/32.jpg",
-            random.nextInt(400) + 300, 
-            random.nextInt(60) + 30,
-            random.nextInt(100) + 200));
-
-        return notes;
+    private void showComments(Note note) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("评论");
+        dialog.setHeaderText(note.getTitle());
+        
+        // 创建评论列表
+        VBox commentList = new VBox(10);
+        commentList.setPadding(new Insets(10));
+        
+        try {
+            List<Comment> comments = commentService.getCommentsByNoteId(note.getId());
+            for (Comment comment : comments) {
+                commentList.getChildren().add(createCommentItem(comment));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // 创建评论输入区域
+        HBox inputBox = new HBox(10);
+        inputBox.setPadding(new Insets(10));
+        
+        TextArea commentInput = new TextArea();
+        commentInput.setPromptText("写下你的评论...");
+        commentInput.setPrefRowCount(2);
+        commentInput.setWrapText(true);
+        
+        Button submitButton = new Button("发送");
+        submitButton.getStyleClass().add("send-comment-button");
+        
+        submitButton.setOnAction(e -> {
+            String content = commentInput.getText().trim();
+            if (!content.isEmpty()) {
+                try {
+                    Comment newComment = new Comment();
+                    newComment.setContent(content);
+                    newComment.setAuthor("当前用户"); // TODO: 使用实际的用户信息
+                    newComment.setNoteId(note.getId());
+                    
+                    commentService.createComment(newComment);
+                    commentService.incrementNoteCommentCount(note.getId());
+                    
+                    // 刷新评论列表
+                    commentList.getChildren().add(createCommentItem(newComment));
+                    commentInput.clear();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        
+        inputBox.getChildren().addAll(commentInput, submitButton);
+        HBox.setHgrow(commentInput, Priority.ALWAYS);
+        
+        // 创建滚动面板
+        ScrollPane scrollPane = new ScrollPane(commentList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(400);
+        
+        // 设置对话框内容
+        VBox dialogContent = new VBox(10);
+        dialogContent.getChildren().addAll(scrollPane, inputBox);
+        
+        dialog.getDialogPane().setContent(dialogContent);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        
+        dialog.show();
     }
 
-    /**
-     * 获取瀑布流布局容器
-     * @return GridPane布局
-     */
-    public GridPane getFeedGrid() {
-        return feedGrid;
+    private VBox createCommentItem(Comment comment) {
+        VBox commentItem = new VBox(8);
+        commentItem.getStyleClass().add("comment-item");
+        
+        // 评论头部（作者信息）
+        HBox header = new HBox(8);
+        header.getStyleClass().add("comment-header");
+        
+        ImageView avatarView = new ImageView();
+        avatarView.getStyleClass().add("comment-avatar");
+        avatarView.setFitWidth(32);
+        avatarView.setFitHeight(32);
+        
+        try {
+            Image avatar = new Image(comment.getAuthorAvatar());
+            avatarView.setImage(avatar);
+        } catch (Exception e) {
+            avatarView.setImage(new Image(getClass().getResourceAsStream("/default-avatar.png")));
+        }
+        
+        VBox authorInfo = new VBox(2);
+        authorInfo.getStyleClass().add("author-info");
+        
+        Label authorLabel = new Label(comment.getAuthor());
+        authorLabel.getStyleClass().add("author-name");
+        
+        Label timeLabel = new Label(comment.getCreateTime().toString());
+        timeLabel.getStyleClass().add("comment-time");
+        
+        authorInfo.getChildren().addAll(authorLabel, timeLabel);
+        
+        header.getChildren().addAll(avatarView, authorInfo);
+        
+        // 评论内容
+        Text content = new Text(comment.getContent());
+        content.getStyleClass().add("comment-content");
+        TextFlow contentFlow = new TextFlow(content);
+        
+        // 评论互动区域
+        HBox interaction = new HBox(10);
+        interaction.getStyleClass().add("comment-interaction");
+        
+        Button likeButton = new Button("❤ " + comment.getLikes());
+        likeButton.getStyleClass().addAll("icon-button", "like-button");
+        
+        Button deleteButton = new Button("🗑");
+        deleteButton.getStyleClass().addAll("icon-button", "delete-button");
+        
+        interaction.getChildren().addAll(likeButton, deleteButton);
+        
+        commentItem.getChildren().addAll(header, contentFlow, interaction);
+        
+        return commentItem;
     }
-}
 
+    private void showNoteDetail(Note note) {
+        // TODO: 实现笔记详情页面
+    }
+
+    public VBox getView() {
+        return new VBox(feedGrid);
+    }
+} 

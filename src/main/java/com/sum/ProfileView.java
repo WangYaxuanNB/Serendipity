@@ -14,6 +14,10 @@ public class ProfileView {
     private VBox profileInfo;
     
     public ProfileView() {
+        initializeUI();
+    }
+    
+    private void initializeUI() {
         // 初始化个人中心布局
         profileInfo = new VBox(20);
         profileInfo.getStyleClass().add("profile-info");
@@ -57,10 +61,10 @@ public class ProfileView {
     }
     
     /**
-     * 获取个人中心信息布局
+     * 获取个人中心视图的根节点
      * @return 个人中心布局
      */
-    public VBox getProfileInfo() {
+    public VBox getView() {
         return profileInfo;
     }
 }

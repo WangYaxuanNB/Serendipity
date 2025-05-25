@@ -1,1 +1,0 @@
-primaryStage.setTitle("Serendipity");
