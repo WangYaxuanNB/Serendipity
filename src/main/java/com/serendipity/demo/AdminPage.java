@@ -103,6 +103,6 @@ public class AdminPage {
         contentArea.getChildren().clear(); // 清除中心区域原有内容
         contentArea.getChildren().add(new SensitiveInfoManagementPanel()); // 添加敏感信息管理面板
     }
-
+   //test
     // TODO: 添加其他管理功能的显示方法
 } 
