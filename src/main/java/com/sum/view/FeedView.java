@@ -135,6 +135,7 @@ public class FeedView extends ScrollPane {
         HBox.setHgrow(authorBox, Priority.ALWAYS);
         contentBox.getChildren().addAll(titleLabel, bottomBox);
         card.getChildren().addAll(imageBox, contentBox);
+        //点击图片事件
         imageView.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
                 openNoteDetail(note,comments);
