@@ -1,211 +1,194 @@
 package com.sum.view;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.List;
-
-import com.sum.dao.impl.NoteDaoImpl;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.sum.dialog.CommentsDialog;
+import com.sum.dialog.NoteDetailDialog;
+import com.sum.domain.entity.Comments;
+import com.sum.domain.entity.Notes;
+import com.sum.domain.entity.Record;
+import com.sum.service.ICommentsService;
+import com.sum.service.INotesService;
+import com.sum.service.IRecordService;
+import com.sum.utils.ContextUtil;
+import com.sum.utils.FileUtils;
+import com.sum.utils.SpringContextUtil;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
-import com.sum.model.Comment;
-import com.sum.model.Note;
-import com.sum.service.CommentService;
-import com.sum.service.NoteService;
-import javafx.scene.control.ScrollPane;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.Cursor;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.HBox;
-import javafx.geometry.Pos;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.io.File;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+
+@Getter
 public class FeedView extends ScrollPane {
 
-    private CommentService commentService = new CommentService(); // Initialize service
-    private NoteService noteService = new NoteService(); // Initialize service
-    private NoteDaoImpl noteDao = new NoteDaoImpl();
+    private ICommentsService commentsService;
+    private INotesService notesService;
     private FlowPane feedGrid;
+    private String keyWords;
+    private IRecordService recordService;
 
-    public FeedView() {
-        // Setup ScrollPane
+    public FeedView(String keyWords) {
+        this.keyWords = keyWords;
+        this.commentsService = SpringContextUtil.getBean(ICommentsService.class);
+        this.notesService = SpringContextUtil.getBean(INotesService.class);
+        this.recordService = SpringContextUtil.getBean(IRecordService.class);
         setFitToWidth(true);
-        setFitToHeight(true); // Adjust as needed
+        setFitToHeight(true);
         setStyle("-fx-background-color: #f5f5f5;");
-
-        // Setup FlowPane for notes grid
         feedGrid = new FlowPane();
         feedGrid.setPadding(new Insets(12));
         feedGrid.setHgap(15);
         feedGrid.setVgap(15);
         feedGrid.setStyle("-fx-background-color: #f5f5f5;");
-
         setContent(feedGrid);
-
-        // Initial load of notes
         refreshFeed();
     }
 
     public void refreshFeed() {
-        feedGrid.getChildren().clear(); // Clear existing notes
-        List<Note> notes =noteDao.getAll();
-        for (Note note : notes) {
+        feedGrid.getChildren().clear();
+        INotesService notesService = SpringContextUtil.getBean(INotesService.class);
+        LambdaQueryWrapper<Notes> queryWrapper = new LambdaQueryWrapper<>();
+        if(StringUtils.isNotBlank(this.getKeyWords())){
+            String kw = this.getKeyWords();
+            queryWrapper.like(Notes::getTitle,kw)
+                    .or().like(Notes::getDescription,kw)
+                    .or().like(Notes::getAuthor,kw);
+        }
+        queryWrapper.orderByDesc(Notes::getCreatedAt);
+        List<Notes> notes = notesService.list(queryWrapper);
+        for (Notes note : notes) {
             VBox noteCard = createNoteCard(note);
             feedGrid.getChildren().add(noteCard);
         }
     }
 
-    private VBox createNoteCard(Note note) {
+    private VBox createNoteCard(Notes note) {
         VBox card = new VBox();
+        card.setAlignment(Pos.CENTER);
         card.getStyleClass().add("note-card");
-
-        // Image
-        ImageView imageView = new ImageView();
-        String imageUrl = note.getImageUrl();
-        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
-             // Use a placeholder or handle error if image loading fails
-            try {
-                Image image = new Image(imageUrl, true);
-                image.errorProperty().addListener((observable, oldValue, newValue) -> {
-                    if (newValue) {
-                        System.err.println("Failed to load image: " + imageUrl);
-                         imageView.setImage(new Image("https://via.placeholder.com/220x150?text=Load+Error"));
-                         imageView.setFitWidth(220);
-                         imageView.setPreserveRatio(true);
-                    }
-                });
-                imageView.setImage(image);
-                imageView.setFitWidth(220); // Adjust based on card width
-                imageView.setPreserveRatio(true);
-                 imageView.getStyleClass().add("note-image");
-            } catch (IllegalArgumentException e) {
-                 // Use a placeholder image
-                 imageView.setImage(new Image("https://via.placeholder.com/220x150?text=Invalid+URL"));
-                 imageView.setFitWidth(220);
-                 imageView.setPreserveRatio(true);
-            }
-        } else {
-             // Use a placeholder image if no URL
-             imageView.setImage(new Image("https://via.placeholder.com/220x150?text=No+Image"));
-             imageView.setFitWidth(220);
-             imageView.setPreserveRatio(true);
-        }
-
-        // Content VBox
+        ImageView imageView = FileUtils.createImageView(note.getImageUrl());
+        imageView.setFitWidth(280);
+        imageView.setFitHeight(200);
+        VBox imageBox = new VBox();
+        imageBox.setAlignment(Pos.CENTER);
+        imageBox.setPrefHeight(200);
+        imageBox.setPrefWidth(300);
+        imageBox.getChildren().add(imageView);
         VBox contentBox = new VBox(5);
         contentBox.setPadding(new Insets(8));
         contentBox.getStyleClass().add("note-content");
-
-        // Title
         Label titleLabel = new Label(note.getTitle());
         titleLabel.getStyleClass().add("note-title");
         titleLabel.setWrapText(true);
-
-        // Author and Interaction
         VBox authorBox = new VBox(2);
         authorBox.setPadding(new Insets(4, 0, 0, 0));
         authorBox.getStyleClass().add("author-box");
-
         Label authorLabel = new Label(note.getAuthor());
         authorLabel.getStyleClass().add("author-name");
 
-        // Likes (Make it clickable)
-        Label likesLabel = new Label("❤ " + note.getLikes());
-        likesLabel.getStyleClass().add("icon-button");
-        likesLabel.setCursor(Cursor.HAND);
-
-        likesLabel.setOnMouseClicked(event -> {
-            try {
-                noteService.incrementLikes(note.getId());
-                int currentLikes = note.getLikes();
-                note.setLikes(currentLikes + 1);
-                likesLabel.setText("❤ " + note.getLikes());
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showError("点赞失败", "无法更新点赞数：" + e.getMessage());
-            }
+        //点赞
+        Button likes = new Button(String.valueOf(note.getLikes()));
+        likes.getStyleClass().add("icon-button");
+        FontIcon likesIcon = new FontIcon("ci-favorite-filled");
+        likesIcon.setIconColor(Paint.valueOf("#ff2442"));
+        likes.setGraphic(likesIcon);
+        likesIcon.setIconSize(16);
+        likes.setCursor(Cursor.HAND);
+        likes.setOnMouseClicked(event -> {
+            this.getNotesService().incrementLikes(note.getId());
+            long currentLikes = note.getLikes();
+            note.setLikes(currentLikes + 1);
+            likes.setText(String.valueOf(note.getLikes()));
+            createRecords(note.getId());
         });
 
-        // Comments (Placeholder for now, will be integrated with CommentView)
-        Label commentsLabel = new Label("💬 " + note.getCommentCount());
-        commentsLabel.getStyleClass().add("icon-button");
-        commentsLabel.setCursor(Cursor.HAND);
-
-        // Interaction Box (aligned to the right)
+        //评论
+        Button comments = new Button(String.valueOf(note.getCommentCount()));
+        comments.getStyleClass().add("icon-button");
+        FontIcon commentsIcon = new FontIcon("ci-chat-bot");
+        comments.setGraphic(commentsIcon);
+        commentsIcon.setIconSize(16);
+        comments.setCursor(Cursor.HAND);
         HBox interactionBox = new HBox(10);
         interactionBox.setAlignment(Pos.CENTER_RIGHT);
-        interactionBox.getChildren().addAll(likesLabel, commentsLabel);
-
+        interactionBox.getChildren().addAll(likes, comments);
         authorBox.getChildren().addAll(authorLabel);
-
-        // Combine author info and interaction buttons in a single HBox for horizontal alignment
         HBox bottomBox = new HBox();
         bottomBox.setSpacing(10);
         bottomBox.setAlignment(Pos.CENTER_LEFT);
         bottomBox.getChildren().addAll(authorBox, interactionBox);
         HBox.setHgrow(authorBox, Priority.ALWAYS);
-
         contentBox.getChildren().addAll(titleLabel, bottomBox);
-
-        card.getChildren().addAll(imageView, contentBox);
-
-        card.setOnMouseClicked(event -> openNoteDetail(note));
-
+        card.getChildren().addAll(imageBox, contentBox);
+        imageView.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                openNoteDetail(note,comments);
+            }
+        });
         return card;
     }
 
-    private void loadComments(Note note, VBox commentsContainer) {
+    public void createRecords(Long noteId){
+        Record record = new Record();
+        record.setNoteId(noteId);
+        record.setAuthor(ContextUtil.getCurrentUser().getUsername());
+        record.setType(1);
+        record.setCreateTime(new Date());
+        this.getRecordService().save(record);
+    }
+
+    private void openComments(Notes note, Button commentsLabel) {
+        CommentsDialog commentsDialog = new CommentsDialog(note, commentsLabel);
+        commentsDialog.getStage().show();
+    }
+
+    private void loadComments(Notes note, VBox commentsContainer) {
         commentsContainer.getChildren().clear();
-        try {
-            List<Comment> comments = commentService.getCommentsByNoteId(note.getId());
-            for (Comment comment : comments) {
-                Label commentLabel = new Label(comment.getAuthor() + ": " + comment.getContent());
-                commentLabel.setPadding(new Insets(5));
-                commentsContainer.getChildren().add(commentLabel);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showError("加载评论失败", "无法从数据库获取评论：" + e.getMessage());
+        List<Comments> comments = this.getCommentsService().getCommentsByNoteId(note.getId());
+        for (Comments comment : comments) {
+            Label commentLabel = new Label(comment.getAuthor() + ": " + comment.getContent());
+            commentLabel.setPadding(new Insets(5));
+            commentsContainer.getChildren().add(commentLabel);
         }
     }
 
-    private void openNoteDetail(Note note) {
-        System.out.println("Opening detail for note: " + note.getTitle());
+    private void openNoteDetail(Notes note,Button comments) {
+        NoteDetailDialog noteDetailDialog = new NoteDetailDialog(note,comments);
+        noteDetailDialog.getNoteInfoStage().show();
     }
 
-    private void handleSubmitComment(Note note, TextField commentInput, VBox commentsContainer, Label commentCountLabel) {
+    private void handleSubmitComment(Notes note, TextField commentInput, VBox commentsContainer, Label commentCountLabel) {
         String commentText = commentInput.getText().trim();
         if (commentText.isEmpty()) {
             return;
         }
-
         String authorName = "示例用户";
-
-        Comment newComment = new Comment();
+        Comments newComment = new Comments();
         newComment.setNoteId(note.getId());
         newComment.setAuthor(authorName);
         newComment.setContent(commentText);
         newComment.setCreateTime(new Timestamp(System.currentTimeMillis()));
-
-        try {
-            commentService.createComment(newComment);
-            noteService.incrementCommentCount(note.getId());
-            note.setCommentCount(note.getCommentCount() + 1);
-            commentCountLabel.setText(String.valueOf(note.getCommentCount()));
-
-            loadComments(note, commentsContainer);
-
-            commentInput.clear();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showError("发布评论失败", "无法保存评论：" + e.getMessage());
-        }
+        this.getCommentsService().createComment(newComment);
+        this.getNotesService().incrementCommentCount(note.getId());
+        note.setCommentCount(note.getCommentCount() + 1);
+        commentCountLabel.setText(String.valueOf(note.getCommentCount()));
+        loadComments(note, commentsContainer);
+        commentInput.clear();
     }
 
     private void showError(String title, String content) {
@@ -214,10 +197,6 @@ public class FeedView extends ScrollPane {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    public FlowPane getFeedGrid() {
-        return feedGrid;
     }
 
     public ScrollPane getView() {
