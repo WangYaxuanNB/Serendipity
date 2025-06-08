@@ -1,6 +1,0 @@
-.tab-pane .tab:selected .tab-label {
-    -fx-text-fill: #ff2442;
-    -fx-font-weight: bold;
-    -fx-padding-bottom: 30px; /* 进一步增加底部内边距 */
-    -fx-translate-y: -5px; /* 微调文字位置 */
-}
