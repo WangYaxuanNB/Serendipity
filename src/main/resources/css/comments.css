@@ -1,0 +1,14 @@
+.comment-text-field {
+    -fx-pref-width: 600px;
+    -fx-pref-height: 32px;
+}
+
+.comment-text-field:focused .content {
+    -fx-highlight-fill: transparent; /* 选中文字的背景色 */
+    -fx-highlight-text-fill: #000; /* 选中文字的前景色 */
+}
+
+.scroll-pane:focused .content{
+    -fx-highlight-fill: transparent; /* 选中文字的背景色 */
+    -fx-highlight-text-fill: #000; /* 选中文字的前景色 */
+}
