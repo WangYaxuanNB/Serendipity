@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sum.mapper.NotesMapper">
+
+    <resultMap type="com.sum.domain.entity.Notes" id="NotesResult">
+            <result property="id" column="id"/>
+            <result property="title" column="title"/>
+            <result property="description" column="description"/>
+            <result property="author" column="author"/>
+            <result property="imageUrl" column="image_url"/>
+            <result property="likes" column="likes"/>
+            <result property="commentCount" column="comment_count"/>
+            <result property="imageHeight" column="image_height"/>
+            <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="selectNotesVo">
+            id,
+            title,
+            description,
+            author,
+            image_url,
+            author_avatar_url,
+            likes,
+            comment_count,
+            image_height,
+            created_at
+    </sql>
+    <update id="incrementLikes">
+        UPDATE notes SET likes = likes + 1 WHERE id = #{id}
+    </update>
+    <update id="incrementNoteCommentCount">
+        UPDATE notes SET comment_count = comment_count + 1 WHERE id = #{id}
+    </update>
+
+</mapper>

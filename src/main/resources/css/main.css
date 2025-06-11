@@ -1,0 +1,383 @@
+.tab {
+    -fx-pref-height: 36px;
+    -fx-pref-width: 100px;
+    -fx-font-size: 14px;
+    -fx-padding: 0 50 0 20;
+}
+
+.tab-pane .tab-header-area .headers-region .tab:selected {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* 瀑布流布局 */
+.feed-grid {
+    -fx-padding: 20;
+    -fx-hgap: 20;
+    -fx-vgap: 20;
+    -fx-background-color: #f5f5f5;
+    -fx-alignment: center;
+}
+
+/* 笔记卡片 */
+.note-card {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0);
+    -fx-pref-width: 300px;
+    -fx-pref-height: 300px;
+    -fx-cursor: hand;
+    -fx-border-color: #f0f0f0;
+    -fx-border-width: 1px;
+    -fx-transition: all 0.3s ease;
+}
+
+.note-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 10, 0, 0, 0);
+    -fx-translate-y: -2;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+/* Container for the image at the top of the card */
+.note-image-container {
+    /* No specific styles needed here if image covers it */
+}
+
+/* The image itself */
+.note-image {
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-background-color: #f0f0f0;
+    -fx-padding: 0;
+}
+
+/* Container for the text content below the image */
+.note-content {
+    -fx-padding: 10px;
+    -fx-spacing: 6px;
+}
+
+/* Note Title */
+.note-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+    -fx-wrap-text: true;
+}
+
+/* Note Description */
+.note-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666;
+    -fx-wrap-text: true;
+    -fx-line-spacing: 1.2;
+}
+
+/* Container for author info and interaction buttons at the bottom */
+.interaction-box {
+    -fx-padding: 8px 0 0 0;
+    -fx-spacing: 10px;
+    -fx-alignment: center-left;
+}
+
+/* Container for author avatar and name */
+.author-box {
+    -fx-spacing: 6px;
+    -fx-alignment: center-left;
+}
+
+/* Author Avatar */
+.author-avatar {
+    /* Radius is handled in JavaFX code using setStyle or Circle clip */
+    /* -fx-background-radius: 50%; */
+    /* -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 3, 0, 0, 1); */
+}
+
+/* Author Name */
+.author-name {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666;
+}
+
+/* Style for the like and comment buttons */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #999;
+    -fx-font-size: 12px;
+    -fx-padding: 2px 5px;
+    -fx-cursor: hand;
+}
+
+/* Specific style for the heart icon if needed, though text-fill usually covers it */
+.like-button .graphic-text, .comment-button .graphic-text {
+    -fx-fill: #999;
+}
+
+.like-button:hover .graphic-text, .comment-button:hover .graphic-text {
+    -fx-fill: #ff2442;
+}
+
+/* 发布表单 */
+.publish-form {
+    -fx-background-color: white;
+    -fx-padding: 25;
+    -fx-spacing: 20;
+}
+
+.form-label {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.text-field, .text-area {
+    -fx-background-color: #f7f7f7;
+    -fx-border-radius: 8px;
+    -fx-border-color: #DDDDDD;
+    -fx-font-size: 14px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/*.text-field:focused, .text-area:focused {
+    -fx-border-color: #ff2442;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(255,36,66,0.1), 4, 0, 0, 0);
+}*/
+
+/* 图片上传区域 */
+.image-upload-container {
+    -fx-spacing: 12;
+    -fx-padding: 15;
+    -fx-background-color: #f7f7f7;
+    -fx-background-radius: 8px;
+}
+
+/* 发布按钮 */
+.publish-button {
+    -fx-background-color: #ff2442;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-padding: 12 35;
+    -fx-background-radius: 25px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(255,36,66,0.3), 8, 0, 0, 2);
+}
+
+.publish-button:hover {
+    -fx-background-color: #e81e3c;
+    -fx-effect: dropshadow(three-pass-box, rgba(255,36,66,0.4), 10, 0, 0, 3);
+}
+
+/* 详情页样式 */
+.note-detail-container {
+    -fx-background-color: white;
+    -fx-padding: 20;
+}
+
+/* 评论区样式 */
+.comment-section {
+    -fx-padding: 15px 0;
+    -fx-spacing: 15px;
+}
+
+/* 单条评论卡片 */
+.comment-item {
+    -fx-padding: 10px 0;
+    -fx-border-color: transparent transparent #f0f0f0 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-spacing: 8px;
+}
+
+/* 评论头部 (头像, 作者信息, 操作按钮) */
+.comment-header {
+    -fx-spacing: 10px;
+    -fx-alignment: center-left;
+}
+
+/* 评论者头像 */
+.comment-avatar {
+    /* 头像的圆角和大小通常在JavaFX代码中设置 */
+}
+
+/* 评论者信息容器 (作者名和时间) */
+.author-info {
+    -fx-spacing: 2px;
+}
+
+/* 评论者名称 */
+.comment-header .author-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* 评论时间 */
+.comment-time {
+    -fx-font-size: 11px;
+    -fx-text-fill: #999;
+}
+
+/* 评论内容 */
+.comment-content {
+    -fx-font-size: 13px;
+    -fx-text-fill: #333;
+    -fx-wrap-text: true;
+    -fx-line-spacing: 1.3;
+}
+
+/* 评论互动区域 (点赞/删除按钮) */
+.comment-interaction {
+    -fx-spacing: 8px;
+    -fx-alignment: center-right;
+}
+
+/* 评论的点赞/删除按钮 */
+/* 使用 icon-button 的通用样式，可以根据需要覆盖 */
+.comment-interaction .icon-button {
+    /* -fx-font-size: 11px; */
+}
+
+.comment-interaction .like-button .graphic-text, .comment-interaction .delete-button .graphic-text {
+    -fx-fill: #999;
+}
+
+.comment-interaction .like-button:hover .graphic-text, .comment-interaction .delete-button:hover .graphic-text {
+    -fx-fill: #ff2442;
+}
+
+/* 个人中心样式 */
+.profile-info {
+    -fx-background-color: white;
+    -fx-padding: 25;
+}
+
+.profile-header {
+    -fx-spacing: 15;
+    -fx-padding: 0 0 20 0;
+    -fx-border-color: transparent transparent #f0f0f0 transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.profile-avatar {
+    -fx-background-radius: 50%;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 2);
+}
+
+.profile-buttons {
+    -fx-spacing: 12;
+}
+
+.follow-button {
+    -fx-background-color: #ff2442;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 25;
+    -fx-background-radius: 20px;
+    -fx-cursor: hand;
+}
+
+.follow-button:hover {
+    -fx-background-color: #e81e3c;
+}
+
+.message-button {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #333;
+    -fx-font-size: 14px;
+    -fx-padding: 8 25;
+    -fx-background-radius: 20px;
+    -fx-cursor: hand;
+}
+
+.message-button:hover {
+    -fx-background-color: #e8e8e8;
+}
+
+/* 部分标题 */
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding-bottom: 12px;
+    -fx-border-bottom: 1px;
+    -fx-text-fill: #333;
+    -fx-padding-top: 5px; /* 调整顶部内边距 */
+}
+
+/* 侧边导航栏按钮样式 */
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-size: 15px;
+    -fx-alignment: center_left;
+    -fx-padding: 10 20;
+    -fx-background-radius: 0;
+}
+
+.sidebar-button:hover {
+    -fx-text-fill: #ff2442;
+    -fx-background-color: #fef0f0; /* 浅红色背景 */
+}
+
+
+.sidebar-button:focused {
+    -fx-background-color: #fef0f0;
+    -fx-text-fill: #ff2442;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent transparent transparent #ff2442; /* 左侧指示线 */
+    -fx-border-width: 0 0 0 3px;
+}
+
+/* 评论输入框和发送按钮样式 */
+.comment-input-box {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 15;
+    -fx-border-radius: 8;
+}
+
+.comment-text-area {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4;
+    -fx-padding: 8;
+}
+
+.send-comment-button {
+    -fx-background-color: #1a73e8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.send-comment-button:hover {
+    -fx-background-color: #155ac9;
+}
+
+/* 搜索框样式 */
+.search-oval {
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 8 15;
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: transparent;
+}
+
+.search-oval:focused {
+    -fx-border-color: #cccccc;
+    -fx-background-color: white;
+}
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.table-view .table-column {
+    -fx-alignment: center;
+}
